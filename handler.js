@@ -16,7 +16,7 @@ module.exports.hello = (event, context, callback) => {
     },
     body: JSON.stringify({
       message: 'Bus info updated!'
-    }),
+    })
   };
 
   resetInfo();
@@ -25,8 +25,8 @@ module.exports.hello = (event, context, callback) => {
 }
 
 module.exports.query = (event, context, callback) => {  
-  queryBusInfo(event.pathParameters.name, callback);
-};
+  queryBusInfo(callback);
+}
 
 var docClient = new AWS.DynamoDB.DocumentClient();
 var table = "BroncoExpressDB";
@@ -34,11 +34,9 @@ var table = "BroncoExpressDB";
 function getBusInfo() {
   request('https://rqato4w151.execute-api.us-west-1.amazonaws.com/dev/info', function (error, response, body) {
     if (!error && response.statusCode == 200) {
-        console.log(body);
           var items = JSON.parse(body);
           for(var i = 0; i < items.length; i++) {
-            console.log(items[i].busID, items[i].logo, items[i].lat, items[i].longi, items[i].route);
-            putItem(items[i].busID.toString(), items[i].logo, items[i].lat, items[i].lng, items[i].route);
+            putItems(items[i].busID.toString(), items[i].logo, items[i].lat, items[i].longi, items[i].route);
           }
         }
     })
@@ -48,7 +46,7 @@ function getBusInfo() {
 function putItems(busID, logo, lat, longi, route) {
   var params = {
     TableName:table,
-    Item:{
+    Items:{
       "busID": busID,
       "timestamp": Date.now(),
       "logo": logo,
@@ -56,8 +54,7 @@ function putItems(busID, logo, lat, longi, route) {
       "longi": longi,
       "route": route
     }
-  };
-
+  }
   console.log("Adding a new item...");
   docClient.put(params, function(err, data) {
     if (err) {
@@ -70,16 +67,16 @@ function putItems(busID, logo, lat, longi, route) {
 
 function resetInfo() {
     var params = {
-        TableName : table
+      TableName : table
     };
 
     docClient.scan(params, function(err, data) {
-        if (err) {
-            console.error("Unable to scan. Error:", JSON.stringify(err, null, 2));
-        } else {
-            data.Items.forEach(function(item) {
-                var param = {
-                    TableName: table,
+      if (err) {
+          console.error("Unable to scan. Error:", JSON.stringify(err, null, 2));
+      } else {
+          data.Items.forEach(function(item) {
+               var param = {
+                   TableName: table,
                     Key: {
                         "busID":item.busID,
                         "timestamp":item.timestamp
@@ -136,5 +133,3 @@ function queryBusInfo(callback) {
         }
     });
 }
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // callback(null, { message: 'Go Serverless v1.0! Your function executed successfully!', event });
