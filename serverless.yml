@@ -64,7 +64,6 @@ functions:
         path: hello
         method: get
         cors: true
-        integration: lambda
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
 #      - sns: greeter-topic
@@ -80,7 +79,7 @@ functions:
     handler: handler.query
     events:
       - http: 
-        path: hello/{query}
+        path: hello/search
         method: get
         cors: true
 
